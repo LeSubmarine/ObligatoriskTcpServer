@@ -9,4 +9,10 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="FanLibrary">
+      <HintPath>..\..\ObligatoriskFanLibrary\netstandard2.0\FanLibrary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

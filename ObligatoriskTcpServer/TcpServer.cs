@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -7,13 +10,14 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FanLibrary;
+using Newtonsoft.Json;
 
 namespace ObligatoriskTcpServer
 {
     class TcpServer
     {
         private static int totaltConnectionNo = 0;
-        const string serverUrl = "https://localhost:5001/api/fanoutput";
 
         public TcpServer()
         {
@@ -37,6 +41,8 @@ namespace ObligatoriskTcpServer
             serverSocket.Stop();
             Console.WriteLine("server stopped");
         }
+
+
         private void DoClient(TcpClient connection, int clientNo)
         {
             try
@@ -49,44 +55,47 @@ namespace ObligatoriskTcpServer
                 while (true)
                 {
                     string[] tcpMessage = { sr.ReadLine(), sr.ReadLine()};
-                    HttpClientHandler handler = new HttpClientHandler();
-                    handler.UseDefaultCredentials = true;
-                    if (tcpMessage[0].ToLower() == "HentAlle")
+                    Console.WriteLine(tcpMessage[0]);
+                    Console.WriteLine(tcpMessage[1]);
+                    if (tcpMessage[0].ToLower() == "hent alle" || tcpMessage[0].ToLower() == "hentalle" || (tcpMessage[0].ToLower() == "get" && tcpMessage[1].ToLower() == ""))
                     {
-                        using (var client = new HttpClient(handler))
+                        sw.WriteLine(JsonConvert.SerializeObject(APIHandler.Get()));
+                        sw.WriteLine("Done");
+                    }
+                    else if (tcpMessage[0].ToLower() == "hent" || tcpMessage[0].ToLower() == "get")
+                    {
+                        try
                         {
-                            client.BaseAddress = new Uri(serverUrl);
-                            client.DefaultRequestHeaders.Clear();
-                            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                            try
-                            {
-                                var responce = client.GetAsync("api/hotels").Result;
-                                if (responce.IsSuccessStatusCode)
-                                {
-                                    var hotels = responce.Content.ReadAsAsync<IEnumerable<Hotel>>().Result;
-                                    foreach (var hotel in hotels)
-                                    {
-                                        Console.WriteLine(hotel);
-                                    }
-                                }
-                                responce = client.GetAsync("api/hotels").Result;
-                                if (responce.IsSuccessStatusCode)
-                                {
-                                    var hotels = responce.Content.ReadAsAsync<IEnumerable<Hotel>>().Result;
-                                    foreach (var hotel in hotels)
-                                    {
-                                        Console.WriteLine(hotel);
-                                    }
-                                }
-
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                                throw;
-                            }
+                            Convert.ToInt32(tcpMessage[1]);
+                            sw.WriteLine(JsonConvert.SerializeObject(APIHandler.Get(Convert.ToInt32(tcpMessage[1]))));
                         }
-                        sw.Write("");
+                        catch (FormatException e)
+                        {
+                            Console.WriteLine(e);
+                            sw.WriteLine("Wrong formating on that message pal");
+                            sw.WriteLine("Not done");
+                        }
+                    }
+                    else if (tcpMessage[0].ToLower() == "gem" || tcpMessage[0].ToLower() == "post")
+                    {
+                        try
+                        {
+                            Console.WriteLine(tcpMessage[1]);
+                            FanOutput fanOutput = (FanOutput)JsonConvert.DeserializeObject(tcpMessage[1],typeof(FanOutput));
+                            APIHandler.Post(fanOutput);
+                            sw.WriteLine("Object posted");
+                            sw.WriteLine("Done");
+                        }
+                        catch (FormatException e)
+                        {
+                            Console.WriteLine(e);
+                            sw.WriteLine("Wrong formating on that message pal");
+                            sw.WriteLine("Not done");
+                        }
+                    }
+                    else
+                    {
+                        sw.WriteLine("Not done");
                     }
                 }
             }

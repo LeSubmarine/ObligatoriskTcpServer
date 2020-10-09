@@ -6,6 +6,7 @@ namespace ObligatoriskTcpServer
     {
         static void Main(string[] args)
         {
+
             TcpServer server = new TcpServer();
         }
     }
