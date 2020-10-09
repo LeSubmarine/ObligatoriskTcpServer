@@ -89,12 +89,14 @@ namespace ObligatoriskTcpServer
                         catch (FormatException e)
                         {
                             Console.WriteLine(e);
+                            //Kan det passe at der ikke skal være en respons her?
                             sw.WriteLine("Wrong formating on that message pal");
                             sw.WriteLine("Not done");
                         }
                     }
                     else
                     {
+                        sw.WriteLine("Wrong formating on that message pal");
                         sw.WriteLine("Not done");
                     }
                 }
